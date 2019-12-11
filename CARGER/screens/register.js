@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, View, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Modal} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import axios from 'axios';
 
 export default class Login extends Component{
     constructor(){
@@ -14,6 +14,25 @@ export default class Login extends Component{
         console.log('event triggered');
         this.setState({modalVisible: true})
         event.preventDefault();
+    }
+
+    signUp = async() => {
+      console.log("Sign Up")
+        await axios({
+            method: 'POST',
+            url: 'http://10.0.33.252:8008/user/register',
+            data: {
+                email:this.state.email,
+                hashedPassword:this.state.password,
+                phone:this.state.phoneNumber,
+                username:this.state.name,
+            }
+          }).then((response) => {
+            console.log("Successfully Registered ", response.data)
+            this.props.navigation.navigate('loginScreen')
+          }).catch((error) => {
+            console.log(error)
+          });
     }
 
     render(){
@@ -89,7 +108,7 @@ export default class Login extends Component{
                         />
 
 
-                        <TouchableOpacity style={styles.button} onPress={this.handleSubmit}>
+                        <TouchableOpacity style={styles.button} onPress={this.signUp}>
                             <Text style={styles.buttonText}>SignUp</Text>
                         </TouchableOpacity>
                     

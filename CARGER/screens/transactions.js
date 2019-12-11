@@ -7,7 +7,9 @@ export default class Home2 extends Component{
     constructor(props){
       super(props);
       this.state = {
-          tab: true
+          tab: true,
+          data: [],
+          isLoaded:false,
       }
       this.handleSubmit1 = this.handleSubmit1.bind(this);
       this.handleSubmit2 = this.handleSubmit2.bind(this)

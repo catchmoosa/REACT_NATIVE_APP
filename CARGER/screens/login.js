@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, KeyboardAvoidingView} from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, KeyboardAvoidingView,AsyncStorage} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import axios from 'axios';
 
 export default class Login extends Component{
     constructor(){
         super();
-        this.sate={email:'', password: ''};
+        this.state={email:'', password: ''};
         this.handleSubmit= this.handleSubmit.bind(this);
     }
 
@@ -14,6 +15,24 @@ export default class Login extends Component{
         event.preventDefault();
         this.props.navigation.navigate('homeScreen')
       }
+
+    signIn = async() => {
+        console.log("Sign in")
+        await axios({
+            method: 'POST',
+            url: 'http://10.0.33.67:8008/user/login',
+            data: {
+                email:this.state.email,
+                hashedPassword:this.state.password,
+            }
+          }).then((response) => {
+            console.log("Token is ", response.data)
+            AsyncStorage.setItem('userToken', response.data)
+            this.props.navigation.navigate('homeScreen')
+          }).catch((error) => {
+            console.log(error)
+          });
+    }
 
     render(){
         return (
@@ -44,7 +63,7 @@ export default class Login extends Component{
                             secureTextEntry= {true}
                         />
 
-                        <TouchableOpacity style={styles.button} onPress={this.handleSubmit}>
+                        <TouchableOpacity style={styles.button} onPress={this.signIn}>
                             <Text style={styles.buttonText}>Login</Text>
                         </TouchableOpacity>
                     

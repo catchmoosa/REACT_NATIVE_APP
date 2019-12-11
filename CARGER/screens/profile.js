@@ -1,25 +1,53 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5'
-
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import axios from 'axios';
 export default class Home2 extends Component{
 
+
+  
     constructor(props){
       super(props);
       this.state = {
-        array: ['Add Money'],
-        name: 'Add Money'
+        data: [],
+        isLoaded:false,
       }
-      this.handleSubmit = this.handleSubmit.bind(this);
+      // this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleSubmit(event){
-      this.state.array.push('25');
-      console.log(this.state.array);
-      event.preventDefault();
+    async componentDidMount(){
+      AsyncStorage.getItem('userToken', (err,result)=>{
+          console.log("token = ",result)
+          var config = {
+              headers: {'Authorization':result}
+          };
+          console.log(config)
+          axios.get('http://10.0.33.252:8008/user/profile',{headers: {'Authorization':result}}).then((response) => {
+              console.log("Data is ", response.data)
+              this.setState({data: response,isLoaded: true})
+            }).catch((error) => {
+              console.log(error)
+            });
+      });
+      
     }
+
+    logOut = async() => {
+      console.log("Logout")
+      await AsyncStorage.clear()
+      this.props.navigation.navigate('landingNav')
+    }
+
+    // handleSubmit(event){
+    //   this.state.array.push('25');
+    //   console.log(this.state.array);
+    //   event.preventDefault();
+    // }
+
+    
 
     render(){
+      if(this.state.isLoaded){
         return (
           // <LinearGradient
           // colors={['#f68400', '#f07400','#d94b05']}
@@ -33,8 +61,8 @@ export default class Home2 extends Component{
                 </View>
 
                 <View style={styles.container4}>
-                  <Text style={styles.buttonText2}>USER NAME</Text>
-                  <Text style={{color: 'grey', fontSize: 17}}>usermail@gmail.com</Text>
+                  <Text style={styles.buttonText2}>{this.state.data.data.username}</Text>
+                  <Text style={{color: 'grey', fontSize: 17}}>{this.state.data.data.email}</Text>
                 </View>
 
                 <View style={styles.line}></View>
@@ -58,7 +86,7 @@ export default class Home2 extends Component{
                   </View> 
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.container6}>
+                <TouchableOpacity style={styles.container6} onPress={this.logOut}>
                   <View style={styles.container62}>
                     <Text style={{fontWeight: 'bold', fontSize: 23}}><Icon name="sign-out-alt" size={23} color={'#d94b05'} style={styles.inputIcon}/>  Log Out</Text>
                   </View>
@@ -71,6 +99,60 @@ export default class Home2 extends Component{
             </ScrollView> 
           // </LinearGradient>   
         );
+      }else{
+        return (
+          // <LinearGradient
+          // colors={['#f68400', '#f07400','#d94b05']}
+          // style={{flex: 1}}
+          // >
+          <ScrollView>
+            <View style={styles.container}>
+
+                <View style={styles.container3}>
+                  <Icon name="user-circle" size={120} color={'grey'} style={styles.inputIcon}/>
+                </View>
+
+                <View style={styles.container4}>
+                  <Text style={styles.buttonText2}>Loading</Text>
+                  <Text style={{color: 'grey', fontSize: 17}}>Loading</Text>
+                </View>
+
+                <View style={styles.line}></View>
+                <View style={styles.line2}></View>
+
+                <TouchableOpacity style={styles.container6} onPress={()=> this.props.navigation.navigate('Transactions')}>
+                  <View style={styles.container62}>
+                    <Text style={{fontWeight: 'bold', fontSize: 23}}><Icon name="wallet" size={23} color={'#d94b05'} style={styles.inputIcon}/>  Transactions</Text>
+                  </View>
+                  <View  style={styles.container63}>
+                    <Icon name="long-arrow-alt-right" size={23} color={'black'} style={styles.inputIcon}/>
+                  </View> 
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.container6} onPress={()=> this.props.navigation.navigate('Feedback')}>
+                  <View style={styles.container62}>
+                    <Text style={{fontWeight: 'bold', fontSize: 23}}><Icon name="pen-square" size={23} color={'#d94b05'} style={styles.inputIcon}/>  Feedback</Text>
+                  </View>
+                  <View  style={styles.container63}>
+                    <Icon name="long-arrow-alt-right" size={23} color={'black'} style={styles.inputIcon}/>
+                  </View> 
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.container6} onPress={this.logOut}>
+                  <View style={styles.container62}>
+                    <Text style={{fontWeight: 'bold', fontSize: 23}}><Icon name="sign-out-alt" size={23} color={'#d94b05'} style={styles.inputIcon}/>  Log Out</Text>
+                  </View>
+                  <View  style={styles.container63}>
+                    <Icon name="long-arrow-alt-right" size={23} color={'black'} style={styles.inputIcon}/>
+                  </View> 
+                </TouchableOpacity> 
+
+            </View> 
+            </ScrollView> 
+          // </LinearGradient>   
+        );
+      }
+        
     }
 }
 

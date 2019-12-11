@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import axios from 'axios';
 
 export default class Home2 extends Component{
 
@@ -8,18 +9,39 @@ export default class Home2 extends Component{
       super(props);
       this.state = {
         array: ['Add Money'],
-        name: 'Add Money'
+        name: 'Add Money',
+        data: null,
+        isLoaded: false,
+        
       }
-      this.handleSubmit = this.handleSubmit.bind(this);
+      // this.handleSubmit = this.handleSubmit.bind(this);
+    }
+    async componentDidMount(){
+      AsyncStorage.getItem('userToken', (err,result)=>{
+          console.log("token = ",result)
+          var config = {
+              headers: {'Authorization':result}
+          };
+          console.log(config)
+          axios.get('http://10.0.33.252:8008/user/profile',{headers: {'Authorization':result}}).then((response) => {
+              console.log("Data is ", response.data)
+              this.setState({data: response,isLoaded: true})
+              console.log(this.state.data.balance,this.state.isLoaded)
+            }).catch((error) => {
+              console.log(error)
+            });
+      });
+      
     }
 
-    handleSubmit(event){
-      this.state.array.push('25');
-      console.log(this.state.array);
-      event.preventDefault();
-    }
+    // handleSubmit(event){
+    //   this.state.array.push('25');
+    //   console.log(this.state.array);
+    //   event.preventDefault();
+    // }
 
     render(){
+      if(this.state.isLoaded){
         return (
           // <LinearGradient
           // colors={['#f68400', '#f07400','#d94b05']}
@@ -32,7 +54,7 @@ export default class Home2 extends Component{
                         <Text style={styles.container2Head}>Available Balance</Text>
                         <Text style={styles.container2Amount}>
                           <Icon name="rupee-sign" size={35} color={'white'}/>
-                          <Text>123.45</Text>
+                          <Text>{this.state.data.data.balance}</Text>
                         </Text>
                       </View>
                       <View>
@@ -83,6 +105,72 @@ export default class Home2 extends Component{
             </ScrollView> 
           // </LinearGradient>   
         );
+      }else{
+        return (
+          // <LinearGradient
+          // colors={['#f68400', '#f07400','#d94b05']}
+          // style={{flex: 1}}
+          // >
+          <ScrollView>
+            <View style={styles.container}>
+                <View style={styles.container2}>
+                      <View>
+                        <Text style={styles.container2Head}>Available Balance</Text>
+                        <Text style={styles.container2Amount}>
+                          <Icon name="rupee-sign" size={35} color={'white'}/>
+                          <Text>Loading...</Text>
+                        </Text>
+                      </View>
+                      <View>
+                        <Icon name="coins" size={55} color={'white'}/>
+                      </View>
+                </View>
+
+                <View style={styles.container3}>
+                  <Icon name="rupee-sign" size={25} color={'grey'} style={styles.inputIcon}/>
+                  <TextInput style={styles.inputbox} 
+                              underlineColorAndroid="rgba(0,0,0,0)"
+                              placeholder="Amount"
+                              placeholderTextColor="grey"
+                              keyboardType= 'decimal-pad'
+                              onChangeText={(text)=> this.setState({email:text}) }
+                  />
+                </View>
+
+                <View style={styles.container4}>
+
+                  <TouchableOpacity style={styles.button2} onPress={this.handleSubmit}>
+                      <Text style={styles.buttonText2}>Add Money</Text>
+                  </TouchableOpacity>
+
+                </View>
+
+                <View style={styles.line}></View>
+                <View style={styles.line2}></View>
+
+                <View style={styles.container5}>
+                  <View style={{flex: 1}}>
+                    <Text style={styles.container5button}>Recent Orders</Text>
+                  </View>  
+                </View>
+
+                <View style={styles.container6}>
+                  <View  style={styles.container62}>
+                    <Text style={{fontWeight: 'bold', fontSize: 18}}>Ordered at Outlet Name</Text>
+                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>4 litres-Petrol</Text>
+                  </View>
+                  <View  style={styles.container63}>
+                    <Text style={{fontWeight: 'bold', fontSize: 18}}><Icon name="rupee-sign" size={15} color={'black'}/> 20</Text>
+                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>Token</Text>
+                  </View> 
+                </View> 
+
+            </View> 
+            </ScrollView> 
+          // </LinearGradient>   
+        );
+      }
+        
     }
 }
 

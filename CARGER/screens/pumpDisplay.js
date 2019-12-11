@@ -1,18 +1,37 @@
 import React, {Component} from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/FontAwesome5'
-
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import axios from 'axios';
 export default class Outlets extends Component{
 
     constructor(props){
       super(props);
       this.state = {
-        array: ['Add Money'],
-        name: 'Add Money'
+        data: [],
+        isLoaded:false,
       }
       this.handleSubmit = this.handleSubmit.bind(this);
     }
+
+    async componentDidMount(){
+      AsyncStorage.getItem('userToken', (err,result)=>{
+          console.log("token = ",result)
+          var config = {
+              headers: {'Authorization':result}
+          };
+          console.log(config)
+          axios.get('http://10.0.33.252:8008/user/gmap',{lat:18,lng:73},{headers: {'Authorization':result}}).then((response) => {
+              console.log("Data is ", response.data)
+              this.setState({data: response,isLoaded: true})
+            }).catch((error) => {
+              console.log(error)
+            });
+      });
+      
+    }
+
+
 
     handleSubmit(event){
       this.state.array.push('25');
