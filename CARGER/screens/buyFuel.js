@@ -1,26 +1,44 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Picker, KeyboardAvoidingView} from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Picker, KeyboardAvoidingView,AsyncStorage} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5'
-
+import axios from 'axios'
 
 export default class Home2 extends Component{
 
     constructor(props){
       super(props);
       this.state = {
-        array: ['Add Money'],
-        name: 'Add Money',
-        fuelType: '',
+        item: this.props.navigation.state.params.item,
+        fuelType: this.props.navigation.state.params.item.fuelDetails[0].fuel,
+        quantity:'0',
         amount: '0',
       }
-      this.handleSubmit = this.handleSubmit.bind(this);
+      
     }
 
-    handleSubmit(event){
-      this.state.array.push('25');
-      console.log(this.state.array);
-      event.preventDefault();
-    }
+    buyFuel = async() =>{
+     
+      AsyncStorage.getItem('userToken', (err,result)=>{
+        console.log("token = ",result)
+        var config = {
+            headers: {'Authorization':result}
+        };
+        console.log(config)
+        
+        axios.post('http://192.168.43.177:8008/user/gas_trans',{
+          name:this.state.item.name,
+          type:this.state.fuelType,
+          quantity:this.state.quantity,
+          total:this.state.amount},
+          {headers: {'Authorization':result}}).then((response) => {
+            console.log("Data is ", response.data)
+            this.setState({data: response,isLoaded: true})
+            this.props.navigation.navigate('afterlogin')
+          }).catch((error) => {
+            console.log(error)
+          });
+    });
+   }
 
     get_amount=(text)=>{
       if(text == ''){
@@ -29,7 +47,10 @@ export default class Home2 extends Component{
 
       else{
         x= parseFloat(text);
-        tAmount= x*80
+        this.setState({quantity:text})
+        tAmount= x * parseFloat(this.state.item.fuelDetails.filter(fuel => fuel.fuel == this.state.fuelType)[0].price)
+        console.log('TEXT = ',text)
+        console.log("HELP ME RIGHT NOW",this.state.item.fuelDetails.filter(fuel => fuel.fuel == this.state.fuelType))
         tAmount= String(tAmount)
         this.setState({amount: tAmount})
       }  
@@ -47,24 +68,26 @@ export default class Home2 extends Component{
                 <View style={styles.container1}>
                     <View style= {styles.container11}>
                       <Text style= {{fontSize: 25, fontWeight: 'bold', color:'black'}}>
-                      <Icon name="list-ul" size={25} color={'black'} style={styles.inputIcon}/> Outlet Name Fuel Details
+                      <Icon name="list-ul" size={25} color={'black'} style={styles.inputIcon}/> {this.state.item.name}
                       </Text>
                     </View>
                     <View style= {styles.container12}>
                       <View style= {styles.container121}>
-                        <Text style={styles.container1Text}>Petrol</Text>
-                        <Text style={styles.container1Text}>Diesel</Text>
-                        <Text style={styles.container1Text}>CNG</Text>
+                        {this.state.item.fuelDetails.map((fuel) => {
+                          return(<View key={fuel._id}><Text style={styles.container1Text}>{fuel.fuel}</Text></View>)
+                        })}
                       </View>
                       <View style= {styles.container122}>
-                        <Text style={styles.container1Text2}>1000 litres</Text>
-                        <Text style={styles.container1Text2}>1500 litres</Text>
-                        <Text style={styles.container1Text2}>2000 gallons</Text>
+                      {this.state.item.fuelDetails.map((fuel) => {
+                        return(<View key={fuel._id}><Text style={styles.container1Text2}>{fuel.quantity} Litres</Text></View>)
+                        })}
                       </View>
                       <View style= {styles.container123}>
-                        <Text style={styles.container1Text2}>80 per litre</Text>
-                        <Text style={styles.container1Text2}>70 per litre</Text>
-                        <Text style={styles.container1Text2}>50 per gallon</Text>
+                      {this.state.item.fuelDetails.map((fuel) => {
+                        return(
+                          <View key={fuel._id}><Text style={styles.container1Text2}>{fuel.price} per Litre</Text></View>
+                        ) 
+                        })}
                       </View>
                     </View>    
                 </View>
@@ -78,9 +101,10 @@ export default class Home2 extends Component{
                     onValueChange={(itemValue) =>
                       this.setState({fuelType: itemValue})
                     }>
-                    <Picker.Item label="Petrol" value="petrol"/>
-                    <Picker.Item label="Diesel" value="diesel"/>
-                    <Picker.Item label="CNG" value='cng'/>
+                    {this.state.item.fuelDetails.map((fuel)=>{
+                    return(
+                      <Picker.Item key={fuel._id} label={fuel.fuel} value={fuel.fuel}/>
+                    )})}
                   </Picker>
                 </View>
 
@@ -110,7 +134,7 @@ export default class Home2 extends Component{
 
 
                 <View style={styles.container3}>
-                  <TouchableOpacity style={styles.button2} onPress={this.handleSubmit}>
+                  <TouchableOpacity style={styles.button2} onPress={this.buyFuel.bind(this)}>
                       <Text style={styles.buttonText2}>Buy</Text>
                   </TouchableOpacity>
                 </View>

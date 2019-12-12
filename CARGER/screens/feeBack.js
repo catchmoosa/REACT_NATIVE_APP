@@ -1,43 +1,43 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Picker, KeyboardAvoidingView} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'
-
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Picker, KeyboardAvoidingView, AsyncStorage} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import axios from "axios";
 
 export default class Home2 extends Component{
 
     constructor(props){
       super(props);
       this.state = {
-        array: ['Add Money'],
-        name: 'Add Money',
-        fuelType: '',
-        amount: '0',
         star: '1',
         color2: 'rgb(210,210,210)',
         color3: 'rgb(210,210,210)',
         color4: 'rgb(210,210,210)',
         color5: 'rgb(210,210,210)',
+        text:'',
       }
-      this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleSubmit(event){
-      this.state.array.push('25');
-      console.log(this.state.array);
-      event.preventDefault();
-    }
+    submitFeedback = async()=> {
 
-    get_amount=(text)=>{
-      if(text == ''){
-        this.setState({amount:'0'})
-      }
+      AsyncStorage.getItem('userToken', (err,result)=>{
+        console.log("token = ",result)
+        var config = {
+            headers: {'Authorization':result}
+        };
+        console.log(config)
+        
+        axios.post('http://192.168.43.177:8008/user/review',{
+          rating:this.state.star,
+          text:this.state.text},
+          {headers: {'Authorization':result}}).then((response) => {
+            console.log("Data is ", response.data)
+            this.setState({data: response,isLoaded: true})
+            this.props.navigation.navigate('afterlogin')
+          }).catch((error) => {
+            console.log(error)
+          });
+    });
 
-      else{
-        x= parseFloat(text);
-        tAmount= x*80
-        tAmount= String(tAmount)
-        this.setState({amount: tAmount})
-      }  
     }
 
     starColor = (itemValue) => {
@@ -119,20 +119,19 @@ export default class Home2 extends Component{
 
                 <View style={styles.container2}>
 
-                  {/* <Icon name="water" size={20} color={'grey'} style={styles.inputIcon}/> */}
                   <Text style={{fontSize: 20, fontWeight: 'bold', marginLeft: 10}}>Description :</Text>
                   <TextInput style={styles.inputbox} 
                               underlineColorAndroid="rgba(0,0,0,0)"
                               multiline={true}
                               numberOfLines= {4}
                               keyboardType= 'default'
-                              onChangeText={this.get_amount}
+                              onChangeText={(text)=> this.setState({text:text})}
                               textAlignVertical= "top"
                   />
                 </View>
 
                 <View style={styles.container3}>
-                  <TouchableOpacity style={styles.button2} onPress={this.handleSubmit}>
+                  <TouchableOpacity style={styles.button2} onPress={this.submitFeedback.bind(this)}>
                       <Text style={styles.buttonText2}>Post Review</Text>
                   </TouchableOpacity>
                 </View>

@@ -1,8 +1,12 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView} from 'react-native';
+import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import axios from 'axios';
+import Constants from 'expo-constants';
+import * as Location from 'expo-location';
+import * as Permissions from 'expo-permissions';
+
 export default class Outlets extends Component{
 
     constructor(props){
@@ -10,56 +14,91 @@ export default class Outlets extends Component{
       this.state = {
         data: [],
         isLoaded:false,
+        location: null,
+        errorMessage: null,
       }
-      this.handleSubmit = this.handleSubmit.bind(this);
     }
+    
+    _getLocationAsync = async () => {
+      let { status } = await Permissions.askAsync(Permissions.LOCATION);
+      if (status !== 'granted') {
+        this.setState({
+          errorMessage: 'Permission to access location was denied',
+        });
+      }
+  
+      let location = await Location.getCurrentPositionAsync({});
+      this.setState({ location });
+    };
 
     async componentDidMount(){
+      await this._getLocationAsync();
+      console.log("Location = ",this.state.location)
       AsyncStorage.getItem('userToken', (err,result)=>{
           console.log("token = ",result)
           var config = {
               headers: {'Authorization':result}
           };
           console.log(config)
-          axios.get('http://10.0.33.252:8008/user/gmap',{lat:18,lng:73},{headers: {'Authorization':result}}).then((response) => {
-              console.log("Data is ", response.data)
+          axios.post('http://192.168.43.177:8008/user/gmap',{lat:this.state.location.coords.latitude,lng:this.state.location.coords.longitude},{headers: {'Authorization':result}}).then((response) => {
+              console.log("Pump Data is ", response.data)
               this.setState({data: response,isLoaded: true})
             }).catch((error) => {
+              console.log("FAILED PUMPS")
               console.log(error)
             });
       });
       
     }
 
-
-
-    handleSubmit(event){
-      this.state.array.push('25');
-      console.log(this.state.array);
-      this.props.navigation.navigate('Buy_Fuel')
-      event.preventDefault();
-    }
-
     render(){
-        return (
-          <ScrollView style={{backgroundColor: 'rgba(230,230,230,1)'}}>
-            <View style={styles.container}>
-                <View style={styles.container2}>
-                      <View style={styles.container21}>
-                          <Text style={styles.container21Head}>Pump Name</Text>
-                          <Icon name="gas-pump" size={80} color={'rgba(217, 75, 5, 0.9)'}/>
-                      </View>
-                      <View style={styles.container22}>
-                          <Text style={styles.container22InfoHead}>Location</Text>
-                          <Text style={styles.container22Info}>Shop number 3, Sricity.</Text>
-                          <TouchableOpacity style={styles.button} onPress={this.handleSubmit}>
-                            <Text style={styles.buttonText}>Buy</Text>
-                          </TouchableOpacity>
-                      </View>
-                </View>
-            </View> 
-          </ScrollView>   
-        );
+        if(this.state.isLoaded){
+          return (
+            <ScrollView style={{backgroundColor: 'rgba(230,230,230,1)'}}>
+              <View style={styles.container}>
+                {this.state.data.data.map((item)=> {
+                  return(
+                     <View style={styles.container2} key={item.id}>
+                        <View style={styles.container21}>
+                          <Text style={styles.container21Head}>{item.name}</Text>
+                            <Icon name="gas-pump" size={80} color={'rgba(217, 75, 5, 0.9)'}/>
+                        </View>
+                        <View style={styles.container22}>
+                            <Text style={styles.container22InfoHead}>{item.address}{item.distance}</Text>
+                            <Text style={styles.container22Info}>Waiting Time: {item.estimatedTime}</Text>
+                            <TouchableOpacity style={styles.button} onPress={() => this.props.navigation.navigate('Buy_Fuel',{item:item})}>
+                              <Text style={styles.buttonText}>Buy</Text>
+                            </TouchableOpacity>
+                        </View>
+                  </View> 
+                  )
+                })}
+                  
+              </View> 
+            </ScrollView>   
+          );
+        }else{
+          return (
+            <ScrollView style={{backgroundColor: 'rgba(230,230,230,1)'}}>
+              <View style={styles.container}>
+                  <View style={styles.container2}>
+                        <View style={styles.container21}>
+                            <Text style={styles.container21Head}>Loading</Text>
+                            <Icon name="gas-pump" size={80} color={'rgba(217, 75, 5, 0.9)'}/>
+                        </View>
+                        <View style={styles.container22}>
+                            <Text style={styles.container22InfoHead}>Location</Text>
+                            <Text style={styles.container22Info}>Address</Text>
+                            <TouchableOpacity style={styles.button} >
+                              <Text style={styles.buttonText}>Buy</Text>
+                            </TouchableOpacity>
+                        </View>
+                  </View>
+              </View> 
+            </ScrollView>   
+          );
+        }
+        
     }
 }
 
@@ -90,9 +129,10 @@ const styles = StyleSheet.create({
   },
 
   container21Head: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: 'bold',
-    marginBottom: 15
+    marginBottom: 15,
+    marginLeft: 8
   },
 
   container22:{

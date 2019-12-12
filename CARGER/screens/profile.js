@@ -22,7 +22,7 @@ export default class Home2 extends Component{
               headers: {'Authorization':result}
           };
           console.log(config)
-          axios.get('http://10.0.33.252:8008/user/profile',{headers: {'Authorization':result}}).then((response) => {
+          axios.get('http://192.168.43.177:8008/user/profile',{headers: {'Authorization':result}}).then((response) => {
               console.log("Data is ", response.data)
               this.setState({data: response,isLoaded: true})
             }).catch((error) => {

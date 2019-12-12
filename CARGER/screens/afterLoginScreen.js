@@ -1,53 +1,113 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage} from 'react-native';
+import { StyleSheet, RefreshControl, Text,Linking , View, TextInput, TouchableOpacity, ScrollView, AsyncStorage, SafeAreaView, Modal} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import axios from 'axios';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default class Home2 extends Component{
 
     constructor(props){
       super(props);
       this.state = {
-        array: ['Add Money'],
-        name: 'Add Money',
         data: null,
         isLoaded: false,
-        
+        refreshing: false,
+        amount:'0',
+        modalVisible: false,
+        paypal:null,
       }
-      // this.handleSubmit = this.handleSubmit.bind(this);
     }
+
+    onRefresh = (() => {
+      this.setState({refreshing:true });
+  
+      AsyncStorage.getItem('userToken', (err,result)=>{
+        console.log("token = ",result)
+        var config = {
+            headers: {'Authorization':result}
+        };
+        console.log(config)
+        axios.get('http://192.168.43.177:8008/user/profile',{headers: {'Authorization':result}}).then((response) => {
+            console.log("Data is ", response.data)
+            this.setState({data: response,isLoaded: true,refreshing:false})
+            console.log(this.state.data.balance,this.state.isLoaded)
+          }).catch((error) => {
+            this.setState({refreshing:false})
+            console.log(error)
+          });
+    });
+    });
+
+    
     async componentDidMount(){
       AsyncStorage.getItem('userToken', (err,result)=>{
-          console.log("token = ",result)
-          var config = {
-              headers: {'Authorization':result}
-          };
-          console.log(config)
-          axios.get('http://10.0.33.252:8008/user/profile',{headers: {'Authorization':result}}).then((response) => {
-              console.log("Data is ", response.data)
-              this.setState({data: response,isLoaded: true})
-              console.log(this.state.data.balance,this.state.isLoaded)
-            }).catch((error) => {
-              console.log(error)
-            });
-      });
+        console.log("token = ",result)
+        var config = {
+            headers: {'Authorization':result}
+        };
+        console.log(config)
+        axios.get('http://192.168.43.177:8008/user/profile',{headers: {'Authorization':result}}).then((response) => {
+            console.log("Data is ", response.data)
+            this.setState({data: response,isLoaded: true})
+            console.log(this.state.data.balance,this.state.isLoaded)
+          }).catch((error) => {
+            console.log(error)
+          });
+    });
       
     }
 
-    // handleSubmit(event){
-    //   this.state.array.push('25');
-    //   console.log(this.state.array);
-    //   event.preventDefault();
-    // }
+   paypalAPI = async() => {
+    AsyncStorage.getItem('userToken', (err,result)=>{
+      console.log("token = ",result)
+      var config = {
+          headers: {'Authorization':result}
+      };
+      console.log(config)
+      
+      axios.post('http://192.168.43.177:8008/user/add_money_to_wallet',{
+        amount:this.state.amount},
+        {headers: {'Authorization':result}}).then((response) => {
+          console.log("Paypal Data: ", response.data)
+          this.setState({paypal:response,modalVisible:true})
+
+        }).catch((error) => {
+          console.log(error)
+        });
+  });
+   }
 
     render(){
       if(this.state.isLoaded){
         return (
-          // <LinearGradient
-          // colors={['#f68400', '#f07400','#d94b05']}
-          // style={{flex: 1}}
-          // >
-          <ScrollView>
+          <SafeAreaView>
+        <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh.bind(this)} />} >
+
+
+            <Modal
+                animationType='slide'
+                presentationStyle='fullScreen'
+                visible={this.state.modalVisible}
+                onRequestClose={() => this.setState({modalVisible: false})}>
+                
+                <LinearGradient
+                      colors={['#f68400', '#f07400','#d94b05']}
+                      style={{flex: 1}}>
+                
+                  <View style={styles.modalcontainer}>
+                    <View style={styles.modalcontainer2}> 
+                      <Text style={{color: 'black', fontWeight: 'bold', fontSize: 18}}>Complete Your Transaction</Text>
+                      <Text style={{marginLeft: 23, marginRight: 13}}></Text>
+                      <TouchableOpacity style={styles.modalbutton} onPress={() => {Linking.openURL(this.state.paypal.data.link); this.setState({modalVisible:false})}}>
+                          <Text style={styles.modalbuttonText}>Start Transaction</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                
+                </LinearGradient>  
+              
+              </Modal>
+
             <View style={styles.container}>
                 <View style={styles.container2}>
                       <View>
@@ -69,14 +129,14 @@ export default class Home2 extends Component{
                               placeholder="Amount"
                               placeholderTextColor="grey"
                               keyboardType= 'decimal-pad'
-                              onChangeText={(text)=> this.setState({email:text}) }
+                              onChangeText={(text)=> this.setState({amount:text}) }
                   />
                 </View>
 
                 <View style={styles.container4}>
 
-                  <TouchableOpacity style={styles.button2} onPress={this.handleSubmit}>
-                      <Text style={styles.buttonText2}>Add Money</Text>
+                  <TouchableOpacity style={styles.button2} onPress={this.paypalAPI.bind(this)}>
+                      <Text style={styles.buttonText2}>Add Funds</Text>
                   </TouchableOpacity>
 
                 </View>
@@ -86,23 +146,28 @@ export default class Home2 extends Component{
 
                 <View style={styles.container5}>
                   <View style={{flex: 1}}>
-                    <Text style={styles.container5button}>Recent Orders</Text>
+                    <Text style={styles.container5button}>Processing Transactions</Text>
                   </View>  
                 </View>
-
-                <View style={styles.container6}>
+                {this.state.data.data.gasTransactions.filter(fuel => fuel.status == 'initiated').map((item)=> {
+                  return(
+                <View key={item._id}style={styles.container6}>
                   <View  style={styles.container62}>
-                    <Text style={{fontWeight: 'bold', fontSize: 18}}>Ordered at Outlet Name</Text>
-                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>4 litres-Petrol</Text>
+                    <Text style={{fontWeight: 'bold', fontSize: 18}}>{item.pId}</Text>
+                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>{item.quantity} litre {item.fuelType}</Text>
                   </View>
                   <View  style={styles.container63}>
-                    <Text style={{fontWeight: 'bold', fontSize: 18}}><Icon name="rupee-sign" size={15} color={'black'}/> 20</Text>
-                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>Token</Text>
+                    <Text style={{fontWeight: 'bold', fontSize: 18}}><Icon name="rupee-sign" size={15} color={'black'}/> {item.cost}</Text>
+                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>OTP: {item.otp}</Text>
                   </View> 
-                </View> 
+                </View>
+                  )
+                })}
+                 
 
             </View> 
             </ScrollView> 
+            </SafeAreaView> 
           // </LinearGradient>   
         );
       }else{
@@ -291,6 +356,39 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     marginRight: 20
-  }
+  },
+
+  modalcontainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center' 
+  },
+
+  modalcontainer2: {
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    height:  200,
+    width: 325,
+    backgroundColor: 'white',
+    borderRadius: 8
+  },
+
+  modalbutton:{
+    height: 40,  
+    width: 180,
+    borderRadius: 30, 
+    backgroundColor:'#f07400',
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent:'center',
+    padding: 15
+  },
+
+  modalbuttonText:{
+    fontSize: 15,
+    fontWeight: "bold",
+    color: 'white'
+  },
+
 
 });
