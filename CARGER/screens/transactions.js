@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage} from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage, Image} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import axios from 'axios';
 
@@ -128,71 +129,33 @@ export default class Home2 extends Component{
       else{
         if(this.state.tab){
           return (
+            <LinearGradient
+            colors={['#f68400', '#f07400','#d94b05']}
+            style={{flex: 1}}
+            >
             <ScrollView>
-              <View style={styles.container}>
-                  <View style={styles.container2}>
-                      <TouchableOpacity style={styles.container2button1} onPress={this.handleSubmit1}>
-                        <Text style={styles.buttonText2}>Fuel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.container2button1} onPress={this.handleSubmit2}>
-                        <Text style={styles.buttonText2}>E-Wallet</Text>
-                      </TouchableOpacity>
-                  </View>
-  
-                  <View style={styles.container5}>
-                      <View style={{flex: 1}}>
-                      <Text style={styles.container5button}>Fuel Transactions</Text>
-                      </View>  
-                  </View>
-  
-                  <View style={styles.container6}>
-                      <View  style={styles.container62}>
-                      <Text style={{fontWeight: 'bold', fontSize: 18}}>Ordered at Outlet Name</Text>
-                      <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>4 litres</Text>
-                      </View>
-                      <View  style={styles.container63}>
-                      <Text style={{fontWeight: 'bold', fontSize: 18}}><Icon name="rupee-sign" size={15} color={'black'}/> 20</Text>
-                      <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>Status</Text>
-                      </View> 
-                  </View>
-  
+              <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 170}}>
+                <Image source={require('../assets/logo_symbol.png')}  style={{height: 140,width: 120, resizeMode: 'stretch'}}/>
+                <Text style={{fontSize: 20, fontWeight: 'bold', marginTop: 20}}>Loading....</Text>
               </View> 
-              </ScrollView>  
+            </ScrollView>  
+            </LinearGradient>  
           );
         }
         else{
-  
           return (
   
-          <ScrollView>
-              <View style={styles.container}>
-                  <View style={styles.container2}>
-                      <TouchableOpacity style={styles.container2button1} onPress={this.handleSubmit1}>
-                        <Text style={styles.buttonText2}>Fuel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.container2button1} onPress={this.handleSubmit2}>
-                        <Text style={styles.buttonText2}>E-Wallet</Text>
-                      </TouchableOpacity>
-                  </View>  
-          
-                <View style={styles.container5}>
-                    <View style={{flex: 1}}>
-                    <Text style={styles.container5button}>E-Wallet Transactions</Text>
-                    </View>  
-                </View>
-  
-                <View style={styles.container6}>
-                    <View  style={styles.container62}>
-                    <Text style={{fontWeight: 'bold', fontSize: 18}}>Type</Text>
-                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>Created at</Text>
-                    </View>
-                    <View  style={styles.container63}>
-                    <Text style={{fontWeight: 'bold', fontSize: 18}}><Icon name="rupee-sign" size={15} color={'black'}/> 20</Text>
-                    <Text style={{color: 'rgb(112,128,144)', marginTop: 5, fontSize: 16}}>Status</Text>
-                    </View> 
-                </View>  
-            </View>
+            <LinearGradient
+            colors={['#f68400', '#f07400','#d94b05']}
+            style={{flex: 1}}
+            >
+            <ScrollView>
+              <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 170}}>
+                <Image source={require('../assets/logo_symbol.png')}  style={{height: 140,width: 120, resizeMode: 'stretch'}}/>
+                <Text style={{fontSize: 20, fontWeight: 'bold', marginTop: 20}}>Loading....</Text>
+              </View> 
             </ScrollView>  
+            </LinearGradient>
         )
       }
       }

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage} from 'react-native';
+import { Platform, RefreshControl, StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage, Image, SafeAreaView} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import axios from 'axios';
@@ -16,6 +16,7 @@ export default class Outlets extends Component{
         isLoaded:false,
         location: null,
         errorMessage: null,
+        refreshing: false,
       }
     }
     
@@ -30,6 +31,29 @@ export default class Outlets extends Component{
       let location = await Location.getCurrentPositionAsync({});
       this.setState({ location });
     };
+
+    onRefresh = async() => {
+      this.setState({refreshing:true });
+      await this._getLocationAsync();
+      console.log("Location = ",this.state.location)
+      AsyncStorage.getItem('userToken', (err,result)=>{
+          console.log("token = ",result)
+          var config = {
+              headers: {'Authorization':result}
+          };
+          console.log(config)
+          axios.post('http://192.168.43.177:8008/user/gmap',{lat:this.state.location.coords.latitude,lng:this.state.location.coords.longitude},{headers: {'Authorization':result}}).then((response) => {
+              console.log("Pump Data is ", response.data)
+              this.setState({data: response,isLoaded: true,refreshing:false})
+            }).catch((error) => {
+              console.log("FAILED PUMPS")
+              this.setState({refreshing:false})
+              console.log(error)
+            });
+      });
+    };
+
+    
 
     async componentDidMount(){
       await this._getLocationAsync();
@@ -54,7 +78,8 @@ export default class Outlets extends Component{
     render(){
         if(this.state.isLoaded){
           return (
-            <ScrollView style={{backgroundColor: 'rgba(230,230,230,1)'}}>
+            <SafeAreaView>
+            <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh.bind(this)} />}style={{backgroundColor: 'rgba(230,230,230,1)'}}>
               <View style={styles.container}>
                 {this.state.data.data.map((item)=> {
                   return(
@@ -62,7 +87,7 @@ export default class Outlets extends Component{
                         <View style={styles.container21}>
                           <Text style={styles.container21Head}>{item.name}</Text>
                             <Icon name="gas-pump" size={80} color={'rgba(217, 75, 5, 0.9)'}/>
-                        </View>
+                        </View> 
                         <View style={styles.container22}>
                             <Text style={styles.container22InfoHead}>{item.address}{item.distance}</Text>
                             <Text style={styles.container22Info}>Waiting Time: {item.estimatedTime}</Text>
@@ -76,26 +101,21 @@ export default class Outlets extends Component{
                   
               </View> 
             </ScrollView>   
+            </SafeAreaView>
           );
         }else{
           return (
-            <ScrollView style={{backgroundColor: 'rgba(230,230,230,1)'}}>
-              <View style={styles.container}>
-                  <View style={styles.container2}>
-                        <View style={styles.container21}>
-                            <Text style={styles.container21Head}>Loading</Text>
-                            <Icon name="gas-pump" size={80} color={'rgba(217, 75, 5, 0.9)'}/>
-                        </View>
-                        <View style={styles.container22}>
-                            <Text style={styles.container22InfoHead}>Location</Text>
-                            <Text style={styles.container22Info}>Address</Text>
-                            <TouchableOpacity style={styles.button} >
-                              <Text style={styles.buttonText}>Buy</Text>
-                            </TouchableOpacity>
-                        </View>
-                  </View>
+            <LinearGradient
+            colors={['#f68400', '#f07400','#d94b05']}
+            style={{flex: 1}}
+            >
+            <ScrollView>
+              <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 170}}>
+                <Image source={require('../assets/logo_symbol.png')}  style={{height: 140,width: 120, resizeMode: 'stretch'}}/>
+                <Text style={{fontSize: 20, fontWeight: 'bold', marginTop: 20}}>Loading....</Text>
               </View> 
-            </ScrollView>   
+            </ScrollView>  
+            </LinearGradient> 
           );
         }
         

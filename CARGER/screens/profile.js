@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage} from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, AsyncStorage, Image} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import axios from 'axios';
 export default class Home2 extends Component{
@@ -101,55 +102,17 @@ export default class Home2 extends Component{
         );
       }else{
         return (
-          // <LinearGradient
-          // colors={['#f68400', '#f07400','#d94b05']}
-          // style={{flex: 1}}
-          // >
-          <ScrollView>
-            <View style={styles.container}>
-
-                <View style={styles.container3}>
-                  <Icon name="user-circle" size={120} color={'grey'} style={styles.inputIcon}/>
-                </View>
-
-                <View style={styles.container4}>
-                  <Text style={styles.buttonText2}>Loading</Text>
-                  <Text style={{color: 'grey', fontSize: 17}}>Loading</Text>
-                </View>
-
-                <View style={styles.line}></View>
-                <View style={styles.line2}></View>
-
-                <TouchableOpacity style={styles.container6} onPress={()=> this.props.navigation.navigate('Transactions')}>
-                  <View style={styles.container62}>
-                    <Text style={{fontWeight: 'bold', fontSize: 23}}><Icon name="wallet" size={23} color={'#d94b05'} style={styles.inputIcon}/>  Transactions</Text>
-                  </View>
-                  <View  style={styles.container63}>
-                    <Icon name="long-arrow-alt-right" size={23} color={'black'} style={styles.inputIcon}/>
-                  </View> 
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.container6} onPress={()=> this.props.navigation.navigate('Feedback')}>
-                  <View style={styles.container62}>
-                    <Text style={{fontWeight: 'bold', fontSize: 23}}><Icon name="pen-square" size={23} color={'#d94b05'} style={styles.inputIcon}/>  Feedback</Text>
-                  </View>
-                  <View  style={styles.container63}>
-                    <Icon name="long-arrow-alt-right" size={23} color={'black'} style={styles.inputIcon}/>
-                  </View> 
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.container6} onPress={this.logOut}>
-                  <View style={styles.container62}>
-                    <Text style={{fontWeight: 'bold', fontSize: 23}}><Icon name="sign-out-alt" size={23} color={'#d94b05'} style={styles.inputIcon}/>  Log Out</Text>
-                  </View>
-                  <View  style={styles.container63}>
-                    <Icon name="long-arrow-alt-right" size={23} color={'black'} style={styles.inputIcon}/>
-                  </View> 
-                </TouchableOpacity> 
-
-            </View> 
-            </ScrollView> 
-          // </LinearGradient>   
+          <LinearGradient
+            colors={['#f68400', '#f07400','#d94b05']}
+            style={{flex: 1}}
+            >
+            <ScrollView>
+              <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 170}}>
+                <Image source={require('../assets/logo_symbol.png')}  style={{height: 140,width: 120, resizeMode: 'stretch'}}/>
+                <Text style={{fontSize: 20, fontWeight: 'bold', marginTop: 20}}>Loading....</Text>
+              </View> 
+            </ScrollView>  
+            </LinearGradient>   
         );
       }
         
